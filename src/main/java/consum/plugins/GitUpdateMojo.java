@@ -49,7 +49,7 @@ public class GitUpdateMojo extends GitMojo {
     private String branch = "master";
     @Parameter(defaultValue = "true")
     private boolean update = false;
-    @Parameter(defaultValue = "true")
+    @Parameter(defaultValue = "false")
     private boolean init = true;
 
     public static void main(String[] args) throws MojoExecutionException {
@@ -60,6 +60,12 @@ public class GitUpdateMojo extends GitMojo {
 
         String command,s;
         if (init){
+            try {
+                command = "git remote remove origin";
+                exec(command);
+            }catch (Exception e){
+
+            }
             List<String> list = commitFile();
             if (!list.contains(".git")){
                 command = "git init";
