@@ -11,7 +11,7 @@ import java.io.File;
  * @author xiejiedun on 2019/1/16
  */
 
-@Mojo(name = "git-clone")
+@Mojo(name = "clone")
 public class GitCloneMojo extends GitMojo {
 
     @Parameter(defaultValue = ".idea,target,.git")

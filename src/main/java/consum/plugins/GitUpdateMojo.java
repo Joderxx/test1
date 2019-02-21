@@ -26,31 +26,58 @@ import java.util.*;
 /**
  * Goal which touches a timestamp file.
  *
- * @goal touch
+ * @goal git-update
  * 
  * @phase process-sources
  */
-@Mojo(name = "git-update")
+@Mojo(name = "update")
 public class GitUpdateMojo extends GitMojo {
 
-    @Parameter(defaultValue = ".idea,target,.git")
+    /**
+     * 排除哪些目录或文件
+     */
+    @Parameter(property = "exclude",defaultValue = ".idea,target,.git")
     private String exclude = ".idea,target,.git";
-    @Parameter(defaultValue = "update and commit")
+    /**
+     * 更新时记录的消息
+     */
+    @Parameter(property = "message",defaultValue = "update and commit")
     private String message = "update and commit";
-    @Parameter(defaultValue = "")
+    /**
+     * 远程仓库地址
+     */
+    @Parameter(property = "remoteHost",defaultValue = "")
     private String remoteHost = "git@github.com:Joderxx/test1.git";
-    @Parameter(defaultValue = "")
+    /**
+     * 邮箱
+     */
+    @Parameter(property = "email",defaultValue = "")
     private String email = "";
-    @Parameter(defaultValue = "")
+    /**
+     * 用户名
+     */
+    @Parameter(property = "username",defaultValue = "")
     private String username = "";
-    @Parameter(defaultValue = "")
+    /**
+     * 密码
+     */
+    @Parameter(property = "password",defaultValue = "")
     private String password = "";
-    @Parameter(defaultValue = "master")
+    /**
+     * 分支
+     */
+    @Parameter(property = "branch",defaultValue = "master")
     private String branch = "master";
-    @Parameter(defaultValue = "true")
+    /**
+     * 是否是更新
+     */
+    @Parameter(property = "update",defaultValue = "true")
     private boolean update = false;
-    @Parameter(defaultValue = "false")
-    private boolean init = true;
+    /**
+     * 是否初始化,优先级比update高
+     */
+    @Parameter(property = "init",defaultValue = "false")
+    private boolean init = false;
 
     public static void main(String[] args) throws MojoExecutionException {
         new GitUpdateMojo().execute();
@@ -59,6 +86,7 @@ public class GitUpdateMojo extends GitMojo {
     public void execute() throws MojoExecutionException {
 
         String command,s;
+        //是否需要初始化
         if (init){
             try {
                 command = "git remote remove origin";
@@ -67,6 +95,7 @@ public class GitUpdateMojo extends GitMojo {
 
             }
             List<String> list = commitFile();
+            //是不是git项目
             if (!list.contains(".git")){
                 command = "git init";
                 getLog().info(exec(command));
@@ -82,6 +111,7 @@ public class GitUpdateMojo extends GitMojo {
                 getLog().info("init username: "+email);
             }
         }
+        //显示分支
         command = "git branch";
         s = exec(command);
         if (s.indexOf(branch)!=-1){
@@ -91,10 +121,12 @@ public class GitUpdateMojo extends GitMojo {
         }
 
         getLog().info("当前分支\n"+s);
+        //显示用户名
         command = "git config --global user.name";
         if (isEmpty(username)){
             username = exec(command).trim();
         }
+        //显示邮箱
         command = "git config --global user.email";
         if (isEmpty(email)){
             email = exec(command).trim();
@@ -102,6 +134,7 @@ public class GitUpdateMojo extends GitMojo {
         getLog().info("Username: "+username);
         getLog().info("Email: "+email);
         command = "git add %s";
+        //列出需要上传的文件和目录
         List<String> ls = listFiles(exclude.split(","));
         for (String e:ls){
             s = String.format(command, e.replace(File.separator,"/"));
@@ -120,11 +153,13 @@ public class GitUpdateMojo extends GitMojo {
             }catch (MojoExecutionException e){
                 getLog().info("已经连接到远程地址");
             }
+            //从线上更新本地代码
             if (!init&&update){
                 command = "git fetch origin";
                 exec(command);
                 getLog().info("Fetch finish...");
             }
+            //更新到线上
             command = "git push -u origin "+branch ;
             if (!isEmpty(username)&&!isEmpty(password)){
                 exec(command,username,password);
